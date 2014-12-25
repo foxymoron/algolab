@@ -1,0 +1,1 @@
+/home/jait/dev/algolab/week11/lightthestage/src/CMakeFiles/lightthestage.dir

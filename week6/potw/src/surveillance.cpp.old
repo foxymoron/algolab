@@ -1,0 +1,148 @@
+#include <iostream>
+#include <vector>
+#include <limits>
+#include <map>
+
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/dijkstra_shortest_paths.hpp>
+#include <boost/graph/push_relabel_max_flow.hpp>
+#include <boost/tuple/tuple.hpp>
+
+using namespace std;
+using namespace boost;
+
+// normal graph
+typedef adjacency_list<vecS, vecS, directedS, no_property,
+        property<edge_weight_t, long> > graph_t;
+typedef graph_traits<graph_t>::vertex_descriptor vertex_t;
+typedef graph_traits<graph_t>::edge_descriptor edge_t;
+typedef property_map<graph_t, edge_weight_t>::type weight_map_t;
+typedef graph_traits<graph_t>::out_edge_iterator out_edge_it;
+// graph for max flow
+typedef adjacency_list_traits<vecS, vecS, directedS> traits_t;
+typedef adjacency_list<vecS, vecS, directedS, no_property,
+        property<edge_capacity_t, long,
+            property<edge_residual_capacity_t, long,
+                property<edge_reverse_t, traits_t::edge_descriptor> > > > mf_graph_t;
+typedef property_map<mf_graph_t, edge_capacity_t>::type edge_capacity_map_t;
+typedef property_map<mf_graph_t, edge_residual_capacity_t>::type residual_capacity_map_t;
+typedef property_map<mf_graph_t, edge_reverse_t>::type reverse_edge_map_t;
+typedef graph_traits<mf_graph_t>::vertex_descriptor mf_vertex_t;
+typedef graph_traits<mf_graph_t>::edge_descriptor mf_edge_t;
+
+void mf_add_edge(int u, int v, long c, edge_capacity_map_t &capacity, 
+        reverse_edge_map_t &rev_edge, mf_graph_t &g) {
+    mf_edge_t e, reverse_edge;
+    tie(e, tuples::ignore) = add_edge(u, v, g);
+    tie(reverse_edge, tuples::ignore) = add_edge(v, u, g);
+    capacity[e] = c;
+    capacity[reverse_edge] = 0;
+    rev_edge[e] = reverse_edge;
+    rev_edge[reverse_edge] = e;
+}
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    int t; cin >> t;
+
+    for(int i=0; i<t; ++i) {
+        int n, m, k, l; cin >> n >> m >> k >> l;
+
+        vector<int> police_stations; // read police station locations
+        for(int j=0; j<k; ++j) {
+            int x; cin >> x;
+            police_stations.push_back(x);
+        }
+
+        vector<int> photo_locations; // read photo locations
+        for(int j=0; j<l; ++j) {
+            int x; cin >> x;
+            photo_locations.push_back(x);
+        }
+
+        graph_t g(n); // declare graph
+        weight_map_t wm = get(edge_weight, g);
+
+        for(int j=0; j<m; ++j) {
+            int u, v; cin >> u >> v;
+            edge_t e;
+            tie(e, tuples::ignore) = add_edge(u, v, g); // add edges to graph
+            wm[e] = 1;
+        }
+
+        map<int, vector<int> > dist;
+        for(int j=0; j<k; ++j) {
+            if(dist.count(police_stations[j]) == 0) {
+                vector<int> d(n, numeric_limits<int>::max());
+                dijkstra_shortest_paths(g, police_stations[j], distance_map(&d[0]));
+                dist[police_stations[j]] = d;
+            }
+        }
+
+        mf_graph_t vg(n + n + n + n + 2);
+        edge_capacity_map_t capacity = get(edge_capacity, vg);
+        reverse_edge_map_t rev_edge = get(edge_reverse, vg);
+
+        int source = n + n + n + n + 1;
+        int sink = source + 1;
+
+        // edges from source to police stations
+        for(int j=0; j<k; ++j) {
+            if(!edge(source, police_stations[j], g).second)
+                mf_add_edge(source, police_stations[j], 1, capacity, rev_edge, vg);
+            else
+                capacity[edge(source, police_stations[j], g).first]++;
+        }
+
+        // edge from police stations to sink
+        for(int j=0; j<k; ++j) {
+            if(!edge(n + n + n + police_stations[j], sink, g).second)
+                mf_add_edge(n + n + n + police_stations[j], sink, 1, capacity, rev_edge, vg);
+            else
+                capacity[edge(n + n + n + police_stations[j], sink, g).first]++;
+        }
+
+        // edge from bobby to photograph
+        for(int j=0; j<k; ++j) {
+            for(int p=0; p<l; ++p) {
+                if(dist[police_stations[j]][photo_locations[p]] != numeric_limits<int>::max())
+                    mf_add_edge(police_stations[j], n + photo_locations[p], 1, capacity, rev_edge, vg);
+            }
+        }
+
+        // edge from photograph to next hop
+        vector<int> edge_to;
+        for(int j=0; j<l; ++j) {
+            out_edge_it ei, eend;
+            for(tie(ei, eend) = out_edges(photo_locations[j], g); ei != eend; ++ei) {
+                const int t = target(*ei, g);
+                edge_to.push_back(t);
+                mf_add_edge(n + photo_locations[j], n + n + t, 1, capacity, rev_edge, vg);
+            }
+        }
+
+        // edge from next hop to police stations
+        for(auto a:edge_to) {
+            if(dist.count(a) == 0) {
+                vector<int> d(n, numeric_limits<int>::max());
+                dijkstra_shortest_paths(g, a, distance_map(&d[0]));
+                dist[a] = d;
+                for(int j=0; j<k; ++j) {
+                    if(dist[a][police_stations[j]] != numeric_limits<int>::max())
+                        mf_add_edge(n + n + a, n + n + n + police_stations[j], 1, capacity, rev_edge, vg);
+                }
+            } else {
+                for(int j=0; j<k; ++j) {
+                    if(dist[a][police_stations[j]] != numeric_limits<int>::max())
+                        mf_add_edge(n + n + a, n + n + n + police_stations[j], 1, capacity, rev_edge, vg);
+                }
+
+            }
+        }
+
+        long flow = push_relabel_max_flow(vg, source, sink);
+        cout << flow << endl;
+    }
+
+    return 0;
+}
