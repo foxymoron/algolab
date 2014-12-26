@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
 
         // connect source to police stations
         for(int j=0; j<n; ++j) {
-            if(photo_locations[j] != 0)
+            if(police_stations[j] != 0)
                 mf_add_edge(source, j, police_stations[j], capacity, rev_edge, g);
         }
 

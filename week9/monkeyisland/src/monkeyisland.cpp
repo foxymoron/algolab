@@ -45,20 +45,18 @@ int main() {
         }
         
         edge_iterator_t ei, eend;
-        set<int> excluded_components;
+        vector<int> excluded_components;
         for(tie(ei, eend) = edges(g); ei != eend; ++ei) {
             if(components[source(*ei, g)] == components[target(*ei, g)])
                 continue;
             else {
-                if(find(excluded_components.begin(), excluded_components.end(),
-                        components[source(*ei, g)]) == excluded_components.end())
-                    excluded_components.insert(components[target(*ei, g)]);
+                excluded_components.push_back(components[target(*ei, g)]);
             }
         }
         
         int total_cost = 0;
         for(int j=0; j<num_components; ++j) {
-            if(find(excluded_components.begin(), excluded_components.end(), j) !=
+            if(find(excluded_components.begin(), excluded_components.end(), j) ==
                     excluded_components.end())
                 total_cost += components_min_cost[j];
         }
