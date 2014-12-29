@@ -1,0 +1,26 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/jait/dev/algolab/week7/h1n1/src/h1n1.cpp
+iostream
+-
+vector
+-
+stack
+-
+map
+-
+utility
+-
+CGAL/Exact_predicates_inexact_constructions_kernel.h
+-
+CGAL/Delaunay_triangulation_2.h
+-
+CGAL/Triangulation_face_base_with_info_2.h
+-
+
