@@ -73,7 +73,7 @@ int main() {
 
                 for(int i=0; i<3; ++i) {
                     // check all adjacent edges
-                    if(t.segment(current, i).squared_length() >= d) {
+                    if(t.segment(current, i).squared_length() >= 4 * d) {
                         if(t.is_infinite(current->neighbor(i))) {
                             safe = true;
                             break;
