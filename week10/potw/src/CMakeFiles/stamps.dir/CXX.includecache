@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/nas/jdixit/algolab/week10/potw/src/stamps.cpp
+iostream
+-
+vector
+-
+CGAL/QP_models.h
+-
+CGAL/QP_functions.h
+-
+CGAL/MP_Float.h
+-
+CGAL/Exact_predicates_inexact_constructions_kernel.h
+-
+
