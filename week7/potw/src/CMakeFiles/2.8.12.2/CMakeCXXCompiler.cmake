@@ -1,10 +1,8 @@
 set(CMAKE_CXX_COMPILER "/usr/bin/c++")
 set(CMAKE_CXX_COMPILER_ARG1 "")
 set(CMAKE_CXX_COMPILER_ID "GNU")
-set(CMAKE_CXX_COMPILER_VERSION "4.9.1")
+set(CMAKE_CXX_COMPILER_VERSION "4.8.3")
 set(CMAKE_CXX_PLATFORM_ID "Linux")
-set(CMAKE_CXX_SIMULATE_ID "")
-set(CMAKE_CXX_SIMULATE_VERSION "")
 
 set(CMAKE_AR "/usr/bin/ar")
 set(CMAKE_RANLIB "/usr/bin/ranlib")
@@ -52,7 +50,7 @@ endif()
 
 
 set(CMAKE_CXX_IMPLICIT_LINK_LIBRARIES "stdc++;m;c")
-set(CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES "/usr/lib/gcc/x86_64-unknown-linux-gnu/4.9.1;/usr/lib;/lib")
+set(CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES "/usr/lib/gcc/x86_64-redhat-linux/4.8.3;/usr/lib64;/lib64;/usr/lib")
 set(CMAKE_CXX_IMPLICIT_LINK_FRAMEWORK_DIRECTORIES "")
 
 

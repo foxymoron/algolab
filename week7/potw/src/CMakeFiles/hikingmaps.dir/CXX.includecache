@@ -6,15 +6,13 @@
 
 #IncludeRegexTransform: 
 
-/home/jait/dev/algolab/week7/potw/src/hikingmaps.cpp
+/nas/jdixit/algolab/week7/potw/src/hikingmaps.cpp
 iostream
--
-set
--
-algorithm
 -
 vector
 -
-CGAL/Exact_predicates_exact_constructions_kernel.h
+CGAL/Exact_predicates_inexact_constructions_kernel.h
+-
+CGAL/ch_graham_andrew.h
 -
 
