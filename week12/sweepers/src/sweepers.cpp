@@ -39,92 +39,66 @@ int main() {
     for(int i=0; i<t; ++i) {
         int n, m, s; cin >> n >> m >> s;
 
-        vector<int> starting_locations;
-        vector<int> exit_locations;
+        vector<int> starting_locations(n, 0);
         for(int j=0; j<s; ++j) {
             int x; cin >> x;
-            starting_locations.push_back(x);
+            starting_locations[x]++;
         }
 
+        vector<int> exit_locations(n, 0);
         for(int j=0; j<s; ++j) {
             int x; cin >> x;
-            exit_locations.push_back(x);
-        }
-
-        vector<vector<int> > corridors(n, vector<int> ());
-        for(int j=0; j<m; ++j) {
-            int x, y; cin >> x >> y;
-            corridors[x].push_back(y);
+            exit_locations[x]++;
         }
 
         graph_t g(n);
         edge_capacity_map_t capacity = get(edge_capacity, g);
-        residual_capacity_map_t res_capacity = get(edge_residual_capacity, g);
         reverse_edge_map_t rev_edge = get(edge_reverse, g);
-        int src = add_vertex(g);
-        int sink = add_vertex(g);
 
-        // connect source to starting locations
-        for(int j=0; j<s; ++j)
-            mf_add_edge(src, starting_locations[j], 1, capacity, rev_edge, g);
-
-        // connect edges
-        for(int j=0; j<n; ++j) {
-            for(auto &e:corridors[j]) {
-                mf_add_edge(j, e, 1, capacity, rev_edge, g);
-                mf_add_edge(e, j, 1, capacity, rev_edge, g);
-            }
-        }
-
-        // connect to exits to sink
-        for(int j=0; j<s; ++j)
-            mf_add_edge(exit_locations[j], sink, 1, capacity, rev_edge, g);
-
-        long flow = push_relabel_max_flow(g, src, sink);
-
-        if(flow != s) {
-            cout << "no flow" << endl;
-            cout << "no" << endl;
-            continue;
-        }
-
-        // check for eulerian tour
-        vector<int> out_degrees;
-        auto vs = vertices(g);
-        for(auto vit = vs.first; vit != vs.second; ++vit) {
-            if(*vit != src && *vit != sink)
-                out_degrees.push_back(out_degree(*vit, g));
-        }
-
-        auto es = edges(g);
-        for(auto eit = es.first; eit != es.second; ++eit) {
-            if(capacity[*eit] == 1 && res_capacity[*eit] == 0) {
-                if(source(*eit, g) != src)
-                    out_degrees[source(*eit, g)]--;
-                if(target(*eit, g) != sink)
-                    out_degrees[target(*eit, g)]--;
-            }
+        for(int j=0; j<m; ++j) {
+            int x, y; cin >> x >> y;
+            mf_add_edge(x, y, 1, capacity, rev_edge, g);
+            mf_add_edge(y, x, 1, capacity, rev_edge, g);
         }
 
         bool is_eulerian = true;
-        for(int j=0; j<n; ++j) {
-            if((find(starting_locations.begin(), starting_locations.end(), j) == starting_locations.end()) &&
-                (find(exit_locations.begin(), exit_locations.end(), j) == exit_locations.end()) &&
-                    out_degrees[j] % 2 != 0)
+        auto vs = vertices(g);
+        for(auto vit = vs.first; vit != vs.second; ++vit) {
+            int count = out_degree(*vit, g);
+            if(starting_locations[*vit] > 0) count+=2;
+            if(exit_locations[*vit] > 0) count+=2;
+            count /= 2;
+            if(count % 2 != 0) {
                 is_eulerian = false;
-            if((find(starting_locations.begin(), starting_locations.end(), j) != starting_locations.end()) &&
-                (find(exit_locations.begin(), exit_locations.end(), j) != exit_locations.end()) &&
-                    out_degrees[j] % 2 == 0)
-                is_eulerian = false;
+                break;
+            }
         }
 
         if(!is_eulerian) {
-            cout << "is not eulerian" << endl;
             cout << "no" << endl;
             continue;
         }
 
-        cout << "yes" << endl;
+        int source = add_vertex(g);
+        int sink = add_vertex(g);
+
+        // connect source to entrances and exits to sink
+        for(int j=0; j<n; ++j) {
+            if(starting_locations[j] > 0)
+                mf_add_edge(source, j, starting_locations[j], capacity, rev_edge, g);
+        }
+
+        for(int j=0; j<n; ++j) {
+            if(exit_locations[j] > 0)
+                mf_add_edge(j, sink, exit_locations[j], capacity, rev_edge, g);
+        }
+
+        long flow = push_relabel_max_flow(g, source, sink);
+
+        if(flow == s)
+            cout << "yes" << endl;
+        else
+            cout << "no" << endl;
     }
 
     return 0;
