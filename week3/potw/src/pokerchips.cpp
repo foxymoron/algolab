@@ -1,65 +1,83 @@
 #include <iostream>
 #include <vector>
-#include <deque>
+#include <map>
+#include <limits>
 
 using namespace std;
 
 typedef vector<int> vi;
-typedef deque<int> di;
-typedef vector< deque<int> > vdi;
+typedef vector<vi> vvi;
 
-int main(){
+int take(vi m, map<vi, int> & cache, const vvi & stacks, const int & n) {
+    // if memoized return
+    if(cache.find(m) != cache.end())
+        return cache[m];
+
+    int maximum = 0;
+    for(int i=1; i<(1<<n); ++i) {
+        vi m_copy = m;
+        int color = -1;
+        int count = 0;
+        for(int j=0; j<n; ++j) {
+            if((i & (1<<j)) && m[j] != 0) {
+                if(color == -1)
+                    color = stacks[j][m[j] - 1];
+                if(color != stacks[j][m[j] - 1]) {
+                    count = 0;
+                    break;
+                }
+                --m_copy[j];
+                ++count;
+            }
+        }
+
+        if(count != 0) {
+            if(count < 2)
+                maximum = max(maximum, take(m_copy, cache, stacks, n));
+            else
+                maximum = max(maximum, (1<<(count-2)) + take(m_copy, cache, stacks, n));
+        }
+        //for(auto &i:m)
+            //cout << i << " ";
+        //cout << endl;
+        //cout << maximum << endl;
+        //cout << "--------------------" << endl;
+
+    }
+
+    cache[m] = maximum;
+    return cache[m];
+}
+
+int main() {
+    ios_base::sync_with_stdio(false);
     int t; cin >> t;
-    
+
     for(int i=0; i<t; ++i) {
         int n; cin >> n;
 
         vi m;
         for(int j=0; j<n; ++j) {
-            int a; cin >> a;
-            m.push_back(a);
+            int x; cin >> x;
+            m.push_back(x);
         }
 
-        vdi c;
-        for(auto &num:m) {
-            di temp;
-            for(int j=0; j<num; ++j) {
-                int a; cin >> a;
-                temp.push_back(a);
+        vvi stacks;
+        for(int j=0; j<n; ++j) {
+            vi stack;
+            for(int k=0; k<m[j]; ++k) {
+                int x; cin >> x;
+                stack.push_back(x);
             }
-            c.push_back(temp);
+            stacks.push_back(stack);
         }
 
-        bool done = false;
-        int score = 0;
+        map<vi, int> cache;
+        int best = take(m, cache, stacks, n);
 
-        while(!done) {
-            if(!c[0].empty() && !c[1].empty()) {
-                di::reverse_iterator tos1 = c[0].rbegin();
-                di::reverse_iterator tos2 = c[1].rbegin();
-
-                if(*tos1 == *tos2) {
-                    score++;
-                    c[0].pop_back();
-                    c[1].pop_back();
-                } else if(*(tos1 + 1) == *tos2){
-                    c[0].pop_back();
-                } else if(*tos1 == *(tos2 + 1)) {
-                    c[1].pop_back();
-                } else {
-                    c[0].pop_back();
-                }
-            } else if(!c[0].empty() && c[1].empty()) {
-                c[0].pop_back();
-            } else if(c[0].empty() && !c[1].empty()) {
-                c[1].pop_back();
-            } else if(c[0].empty() && c[1].empty()) {
-                done = true;
-            }
-        }
-
-        cout << score << endl;
-
+        cout << best << endl;
     }
+
+
     return 0;
 }

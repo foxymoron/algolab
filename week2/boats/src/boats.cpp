@@ -1,35 +1,48 @@
 #include <iostream>
-#include <algorithm>
-#include <tuple>
 #include <vector>
+#include <algorithm>
 
 using namespace std;
 
-typedef vector<int> vi;
-typedef vector< pair<int, int> > vpi;
-
-bool pair_sort(pair<int, int> a, pair<int, int> b) { return a.first < b.first; }
+bool my_compare(const pair<int, int> & a, const pair<int, int> & b) {
+    return a.second < b.second;
+}
 
 int main() {
+    ios_base::sync_with_stdio(false);
     int t; cin >> t;
 
-    for(int i = 0; i < t; ++i) {
-        int N; cin >> N;
+    for(int i=0; i<t; ++i) {
+        int n; cin >> n;
 
-        vi boat_length(N);
-        vpi boat_ring;
-
-        for(int i = 0; i < N; ++i) {
+        vector<pair<int, int> > boats;
+        for(int j=0; j<n; ++j) {
             int l, p; cin >> l >> p;
-            boat_length[i] = l;
-            boat_ring.push_back(make_pair(p, i));
+            boats.push_back(make_pair(l, p));
         }
 
-        sort(boat_ring.begin(), boat_ring.end(), pair_sort);
+        sort(boats.begin(), boats.end(), my_compare);
 
-        for(auto &boat : boat_ring) {
-            cout << boat.first << " " << boat.second << endl;
+        vector<int> sol;
+        // add the first boat
+        sol.push_back(0);
+        int right = boats[0].second;
+
+        for(int j=1; j<n; ++j) {
+            if(boats[j].second >= right) {
+                sol.push_back(j);
+                if(boats[j].second - right < boats[j].first)
+                    right = boats[j].second + boats[j].first - (boats[j].second - right);
+                else
+                    right = boats[j].second;
+            }
         }
+
+
+        cout << sol.size() << endl;
+
     }
+
+
     return 0;
 }

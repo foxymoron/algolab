@@ -1,68 +1,31 @@
 #include <iostream>
-#include <deque>
 #include <utility>
 #include <vector>
 #include <map>
 
 using namespace std;
 
-typedef deque<int> di;
+typedef vector<int> vi;
 
-int find_optimal(bool has_turn, map<di, pair<int, int> > & optimal_values, di values, const int &n) {
-    if(has_turn && optimal_values.find(values) == optimal_values.end()) {
-        if(values.size() > 1) {
-            di copy1(values), copy2(values);
-            copy1.pop_front();
-            copy2.pop_back();
-            optimal_values[values] = make_pair(max(values.front() + find_optimal(false, optimal_values, copy1, n),
-                    values.back() + find_optimal(false, optimal_values, copy2, n)), -1);
-            return optimal_values[values].first;
-        } else {
-            optimal_values[values] = make_pair(values.front(), -1);
-            return optimal_values[values].first;
-        }
-    } else if(!has_turn && optimal_values.find(values) == optimal_values.end()) {
-        if(values.size() > 1) {
-            di copy1(values), copy2(values);
-            copy1.pop_front();
-            copy2.pop_back();
-            optimal_values[values] = make_pair(-1, min(find_optimal(true, optimal_values, copy1, n),
-                    find_optimal(true, optimal_values, copy2, n)));
-            return optimal_values[values].second;
-        } else {
-            optimal_values[values] = make_pair(-1, 0);
-            return 0;
-        }
+int find_optimal(int left, int right, bool has_turn, vector<vi> & cache, const vi & values, const int &n) {
+    if(cache[left][right] != -1)
+        return cache[left][right];
+
+    if(has_turn) {
+        // my turn
+        if(left == right)
+            cache[left][right] = values[left];
+        else
+            cache[left][right] = max(values[left] + find_optimal(left + 1, right, false, cache, values, n),
+                                                        values[right] + find_optimal(left, right - 1, false, cache, values, n));
+        return cache[left][right];
     } else {
-        if(has_turn && optimal_values[values].first != -1)
-            return optimal_values[values].first;
-        else if(has_turn && optimal_values[values].first == -1) {
-            if(values.size() > 1) {
-                di copy1(values), copy2(values);
-                copy1.pop_front();
-                copy2.pop_back();
-                optimal_values[values] = make_pair(max(values.front() + find_optimal(false, optimal_values, copy1, n),
-                        values.back() + find_optimal(false, optimal_values, copy2, n)), -1);
-                return optimal_values[values].first;
-            } else {
-                optimal_values[values] = make_pair(values.front(), -1);
-                return optimal_values[values].first;
-            }
-        } else if(!has_turn && optimal_values[values].second != -1)
-            return optimal_values[values].second;
-        else if(!has_turn && optimal_values[values].second == -1) {
-            if(values.size() > 1) {
-                di copy1(values), copy2(values);
-                copy1.pop_front();
-                copy2.pop_back();
-                optimal_values[values] = make_pair(-1, min(find_optimal(true, optimal_values, copy1, n),
-                        find_optimal(true, optimal_values, copy2, n)));
-                return optimal_values[values].second;
-            } else {
-                optimal_values[values] = make_pair(-1, 0);
-                return 0;
-            }
-        }
+        // bogey turn
+        if(left == right)
+            return 0;
+        else
+            return min(find_optimal(left + 1, right, true, cache, values, n),
+                    find_optimal(left, right - 1, true, cache, values, n));
     }
 }
 
@@ -74,7 +37,7 @@ int main() {
     for(int i=0; i<t; ++i) {
         int n; cin >> n;
 
-        di values;
+        vi values;
         for(int j=0; j<n; ++j) {
             int x; cin >> x;
             values.push_back(x);
@@ -84,8 +47,8 @@ int main() {
             cout << 0 << endl;
             continue;
         } else {
-            map<di, pair<int, int>> optimal_values;
-            int best = find_optimal(true, optimal_values, values, n);
+            vector<vi> cache(n, vi (n, -1));
+            int best = find_optimal(0, n-1, true, cache, values, n);
             cout << best << endl;
         }
     }
