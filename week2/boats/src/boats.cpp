@@ -25,24 +25,33 @@ int main() {
 
         vector<int> sol;
         // add the first boat
-        sol.push_back(0);
+        int count = 1;
         int right = boats[0].second;
+        int old_right = right;
 
         for(int j=1; j<n; ++j) {
             if(boats[j].second >= right) {
-                sol.push_back(j);
+                old_right = right;
+                count++;
                 if(boats[j].second - right < boats[j].first)
                     right = boats[j].second + boats[j].first - (boats[j].second - right);
                 else
                     right = boats[j].second;
+            } else {
+                if(boats[j].second - old_right < boats[j].first) {
+                    int temp = boats[j].first + old_right;
+                    if(temp < right)
+                        right = temp;
+                }
+                else {
+                    int temp = boats[j].second;
+                    if(temp < right)
+                        right = temp;
+                }
             }
         }
 
-
-        cout << sol.size() << endl;
-
+        cout << count << endl;
     }
-
-
     return 0;
 }
